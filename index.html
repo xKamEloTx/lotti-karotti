@@ -1,39 +1,92 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lotti Karotti - Колода</title>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <style>
+    @font-face {
+      font-family: "Kristen ITC";
+      src: local("Kristen ITC"), local("KristenITC");
+    }
+
     body {
       font-family: sans-serif;
       padding: 20px;
       background: #f4f4f4;
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+    }
+
+    main {
+      flex: 1;
       text-align: center;
     }
+
+    h1 {
+      font-family: "Kristen ITC", cursive, sans-serif;
+      color: orange;
+      font-size: 40px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
     button {
       padding: 10px 20px;
       margin: 10px;
       font-size: 16px;
     }
+
     input {
       padding: 6px;
       font-size: 16px;
       margin: 4px;
     }
+
     .card {
-      font-size: 32px;
-      margin: 20px 0;
-      font-weight: bold;
+      margin: 20px auto;
+      width: 150px;
+      height: 215px;
+      perspective: 1000px;
+      cursor: pointer;
     }
-    ul {
-      list-style: none;
-      padding: 0;
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      position: relative;
     }
-    .players, .history {
-      margin-top: 20px;
+
+    .card.flipped .card-inner {
+      transform: rotateY(-180deg);
     }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+    }
+
+    .card-back {
+      transform: rotateY(0deg);
+    }
+
+    .card-front {
+      transform: rotateY(-180deg);
+    }
+
+    .card img {
+      width: 100%;
+      height: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
     .player-list span {
       display: inline-block;
       background: #fff;
@@ -41,63 +94,129 @@
       margin: 4px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      transition: background 0.3s, border 0.3s;
     }
-    .card img {
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-    }
-    .card.flipped img {
-      transform: rotateY(180deg);
-    }
+
     .player.active {
       background: #d1eaff;
       border: 2px solid #007bff;
       font-weight: bold;
-      padding: 3px 6px;
-      border-radius: 6px;
     }
+
     #currentPlayerName {
       font-size: 28px;
       font-weight: bold;
       color: #333;
-      margin-top: 30px;
+      margin-top: 10px;
+      display: none;
     }
+
     #nextPlayerLabel {
       font-size: 20px;
       color: #555;
       margin-top: 20px;
       margin-bottom: 5px;
+      display: none;
+    }
+
+    .history {
+      margin-top: 20px;
+      display: none;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    #startGameBtn {
+      margin-top: 10px;
+      display: none;
+    }
+
+    #addPlayerSection {
+      display: block;
+    }
+
+    #startHint {
+      font-size: 18px;
+      color: black;
+      margin: 10px 0;
+      display: block;
+    }
+
+    /* Левая стопка колоды */
+    .deck-visual {
+      width: 80px;
+      min-width: 80px;
+      margin-top: 50px;
+    }
+
+    .deck-visual .card-stack {
+      position: relative;
+      height: 220px;
+      width: 100%;
+    }
+
+    .deck-visual .card-stack img {
+      position: absolute;
+      top: 0;
+      left: 10px;
+      width: 60px;
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      background: white;
+    }
+
+    .deck-count {
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎲 Lotti Karotti</h1>
+  <!-- Левая колонка -->
+  <div class="deck-visual">
+    <div class="card-stack" id="deckStack"></div>
+    <div class="deck-count" id="deckCount"></div>
+  </div>
 
-  <div class="players">
-    <h3>Игроки</h3>
-    <input id="playerName" placeholder="Имя игрока">
-    <button onclick="addPlayer()">Добавить</button>
+  <!-- Основная игра -->
+  <main>
+    <h1>Lotti Karotti</h1>
 
-    <!-- Надпись перед списком игроков -->
+    <div id="addPlayerSection" class="players">
+      <h3 id="playersTitle">Игроки</h3>
+      <input id="playerName" placeholder="Имя игрока" />
+      <button onclick="addPlayer()">Добавить</button>
+    </div>
+
     <div id="nextPlayerLabel">Следующий ходит:</div>
-
     <div class="player-list" id="playerList"></div>
-  </div>
 
-  <button onclick="drawCard()">Вытянуть карту</button>
-  <button onclick="startNewGame()">Новая игра</button>
+    <div id="startHint">Для старта нажми на карту</div>
+    <button id="startGameBtn" onclick="startNewGame()">Новая игра</button>
 
-  <!-- Крупное имя текущего игрока -->
-  <div id="currentPlayerName"></div>
+    <div id="currentPlayerName"></div>
 
-  <div class="card"><img id="cardImage" src="images/card-back.png" alt="Карта" width="150"></div>
+    <div class="card" onclick="handleCardClick()">
+      <div class="card-inner">
+        <div class="card-face card-back">
+          <img id="cardBackImage" src="images/card-back.png" alt="Обратная сторона" />
+        </div>
+        <div class="card-face card-front">
+          <img id="cardFrontImage" src="images/card-back.png" alt="Лицевая сторона" />
+        </div>
+      </div>
+    </div>
 
-  <div class="history">
-    <h3>История</h3>
-    <ul id="historyList"></ul>
-  </div>
+    <div class="history">
+      <h3>История</h3>
+      <ul id="historyList"></ul>
+    </div>
+  </main>
 
   <script>
     let fullDeck = [];
@@ -105,14 +224,15 @@
     let history = [];
     let players = [];
     let currentPlayer = 0;
+    let gameStarted = false;
 
     function generateFullDeck() {
-      let cards = [];
-      cards.push(...Array(18).fill('1'));
-      cards.push(...Array(12).fill('2'));
-      cards.push(...Array(6).fill('3'));
-      cards.push(...Array(12).fill('поворот'));
-      return cards;
+      return [
+        ...Array(18).fill('1'),
+        ...Array(12).fill('2'),
+        ...Array(6).fill('3'),
+        ...Array(12).fill('поворот')
+      ];
     }
 
     function shuffle(array) {
@@ -126,43 +246,82 @@
       fullDeck = generateFullDeck();
       deck = [...fullDeck];
       shuffle(deck);
+      renderDeckVisual();
+    }
+
+    function renderDeckVisual() {
+      const container = document.getElementById("deckStack");
+      const count = document.getElementById("deckCount");
+      container.innerHTML = "";
+      let stackLength = Math.min(deck.length, 20); // ограничим отображение 20ю
+
+      for (let i = 0; i < stackLength; i++) {
+        const img = document.createElement("img");
+        img.src = "images/card-back.png";
+        img.style.top = `${i * 2}px`;
+        img.style.left = `${i * 1.5}px`;
+        container.appendChild(img);
+      }
+
+      count.textContent = `Карт: ${deck.length}`;
     }
 
     function drawCard() {
-      if (players.length === 0) {
-        alert("Сначала добавьте хотя бы одного игрока!");
-        return;
-      }
-
       const player = players[currentPlayer];
       updateCurrentPlayerName();
 
-      if (deck.length === 0) {
-        initDeck();
-      }
+      if (deck.length === 0) initDeck();
 
       const card = deck.pop();
-      const cardImage = document.getElementById("cardImage");
-      const cardContainer = cardImage.parentElement;
-      cardContainer.classList.remove("flipped");
-      void cardImage.offsetWidth;
-      cardContainer.classList.add("flipped");
+      renderDeckVisual();
+
+      // Переворот анимация
+      const cardEl = document.querySelector(".card");
+      cardEl.classList.remove("flipped");
+      void cardEl.offsetWidth;
+      cardEl.classList.add("flipped");
+
+      let imageName = "";
+      if (card === "1") imageName = "card-1.png";
+      else if (card === "2") imageName = "card-2.png";
+      else if (card === "3") imageName = "card-3.png";
+      else imageName = "card-turn.png";
 
       setTimeout(() => {
-        let imageName = "";
-        if (card === "1") imageName = "card-1.png";
-        else if (card === "2") imageName = "card-2.png";
-        else if (card === "3") imageName = "card-3.png";
-        else imageName = "card-turn.png";
-        cardImage.src = "images/" + imageName;
+        document.getElementById("cardFrontImage").src = "images/" + imageName;
       }, 300);
 
       history.unshift({ name: player, card: card });
-
       currentPlayer = (currentPlayer + 1) % players.length;
 
       updatePlayers();
       updateHistory();
+    }
+
+    function handleCardClick() {
+      if (!gameStarted) {
+        if (players.length < 2) {
+          alert("Добавьте минимум 2 игроков!");
+          return;
+        }
+        startGame();
+      } else {
+        drawCard();
+      }
+    }
+
+    function startGame() {
+      gameStarted = true;
+      document.getElementById("addPlayerSection").style.display = "none";
+      document.getElementById("nextPlayerLabel").style.display = "block";
+      document.getElementById("startGameBtn").style.display = "inline-block";
+      document.getElementById("currentPlayerName").style.display = "block";
+      document.querySelector(".history").style.display = "block";
+      document.getElementById("startHint").style.display = "none";
+
+      updateCurrentPlayerName();
+      updatePlayers();
+      initDeck();
     }
 
     function updateHistory() {
@@ -179,10 +338,15 @@
     function addPlayer() {
       const input = document.getElementById("playerName");
       const name = input.value.trim();
+
       if (name && !players.includes(name)) {
+        if (players.length >= 4) {
+          alert("Максимум 4 игрока!");
+          return;
+        }
+
         players.push(name);
         updatePlayers();
-        updateCurrentPlayerName();
         input.value = '';
       }
     }
@@ -194,20 +358,14 @@
         const span = document.createElement("span");
         span.textContent = name;
         span.className = "player";
-        if (i === currentPlayer) {
-          span.classList.add("active");
-        }
+        if (i === currentPlayer) span.classList.add("active");
         playersDiv.appendChild(span);
       });
     }
 
     function updateCurrentPlayerName() {
       const nameDiv = document.getElementById("currentPlayerName");
-      if (players.length > 0) {
-        nameDiv.textContent = players[currentPlayer];
-      } else {
-        nameDiv.textContent = '';
-      }
+      nameDiv.textContent = players.length > 0 ? players[currentPlayer] : '';
     }
 
     function startNewGame() {
@@ -215,13 +373,22 @@
       history = [];
       updateHistory();
       initDeck();
-      const cardImage = document.getElementById("cardImage");
-      cardImage.src = "images/card-back.png";
+
+      gameStarted = false;
+
+      document.getElementById("addPlayerSection").style.display = "block";
+      document.getElementById("nextPlayerLabel").style.display = "none";
+      document.getElementById("startGameBtn").style.display = "none";
+      document.getElementById("currentPlayerName").style.display = "none";
+      document.querySelector(".history").style.display = "none";
+      document.getElementById("startHint").style.display = "block";
+
+      document.getElementById("cardFrontImage").src = "images/card-back.png";
+      document.querySelector(".card").classList.remove("flipped");
+
       updatePlayers();
-      updateCurrentPlayerName();
     }
 
-    // Инициализация
     initDeck();
   </script>
 
