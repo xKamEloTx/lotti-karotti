@@ -57,7 +57,7 @@
 
   <button onclick="drawCard()">Вытянуть карту</button>
 
-  <div class="card" id="cardDisplay">🃏</div>
+  <div class="card"><img id="cardImage" src="images/card-back.png" alt="Карта" width="150"></div>
 
   <div class="history">
     <h3>История</h3>
@@ -98,7 +98,13 @@ let currentPlayer = 0;
         initDeck(); // автоматически сбрасываем колоду
       }
       const card = deck.pop();
-      document.getElementById("cardDisplay").textContent = card === 'поворот' ? '🔄 поворот' : card;
+      const cardImage = document.getElementById("cardImage");
+      let imageName = "";
+      if (card === "1") imageName = "card-1.png";
+      else if (card === "2") imageName = "card-2.png";
+      else if (card === "3") imageName = "card-3.png";
+      else imageName = "card-turn.png";
+      cardImage.src = "images/" + imageName;
       const player = players.length > 0 ? players[currentPlayer] : 'Игрок';
       history.unshift({ name: player, card: card });
       currentPlayer = (currentPlayer + 1) % players.length;
@@ -110,7 +116,8 @@ let currentPlayer = 0;
       list.innerHTML = "";
       history.slice(0, 10).forEach(entry => {
         const li = document.createElement("li");
-        li.textContent = `${entry.name}: ${entry.card === 'поворот' ? '🔄 поворот' : entry.card}`;
+        const cardFile = (entry.card === 'поворот') ? 'card-turn.png' : `card-${entry.card}.png`;
+      li.innerHTML = `${entry.name}: <img src="images/${cardFile}" width="50">`;
         list.appendChild(li);
       });
     }
