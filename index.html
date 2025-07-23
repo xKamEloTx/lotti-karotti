@@ -15,13 +15,6 @@
       font-family: sans-serif;
       padding: 20px;
       background: #f4f4f4;
-      display: flex;
-      flex-direction: row;
-      gap: 30px;
-    }
-
-    main {
-      flex: 1;
       text-align: center;
     }
 
@@ -62,7 +55,7 @@
     }
 
     .card.flipped .card-inner {
-      transform: rotateY(-180deg);
+      transform: rotateY(180deg);
     }
 
     .card-face {
@@ -77,7 +70,7 @@
     }
 
     .card-front {
-      transform: rotateY(-180deg);
+      transform: rotateY(180deg);
     }
 
     .card img {
@@ -94,12 +87,15 @@
       margin: 4px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      transition: background 0.3s, border 0.3s;
     }
 
     .player.active {
       background: #d1eaff;
       border: 2px solid #007bff;
       font-weight: bold;
+      padding: 3px 6px;
+      border-radius: 6px;
     }
 
     #currentPlayerName {
@@ -143,80 +139,42 @@
       margin: 10px 0;
       display: block;
     }
-
-    /* Левая стопка колоды */
-    .deck-visual {
-      width: 80px;
-      min-width: 80px;
-      margin-top: 50px;
-    }
-
-    .deck-visual .card-stack {
-      position: relative;
-      height: 220px;
-      width: 100%;
-    }
-
-    .deck-visual .card-stack img {
-      position: absolute;
-      top: 0;
-      left: 10px;
-      width: 60px;
-      height: auto;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-      background: white;
-    }
-
-    .deck-count {
-      margin-top: 10px;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Левая колонка -->
-  <div class="deck-visual">
-    <div class="card-stack" id="deckStack"></div>
-    <div class="deck-count" id="deckCount"></div>
+  <h1>Lotti Karotti</h1>
+
+  <div id="addPlayerSection" class="players">
+    <h3 id="playersTitle">Игроки</h3>
+    <input id="playerName" placeholder="Имя игрока" />
+    <button onclick="addPlayer()">Добавить</button>
   </div>
 
-  <!-- Основная игра -->
-  <main>
-    <h1>Lotti Karotti</h1>
+  <div id="nextPlayerLabel">Следующий ходит:</div>
+  <div class="player-list" id="playerList"></div>
 
-    <div id="addPlayerSection" class="players">
-      <h3 id="playersTitle">Игроки</h3>
-      <input id="playerName" placeholder="Имя игрока" />
-      <button onclick="addPlayer()">Добавить</button>
-    </div>
+  <!-- Стартовая подсказка и кнопка -->
+  <div id="startHint">Для старта нажми на карту</div>
+  <button id="startGameBtn" onclick="startNewGame()">Новая игра</button>
 
-    <div id="nextPlayerLabel">Следующий ходит:</div>
-    <div class="player-list" id="playerList"></div>
+  <div id="currentPlayerName"></div>
 
-    <div id="startHint">Для старта нажми на карту</div>
-    <button id="startGameBtn" onclick="startNewGame()">Новая игра</button>
-
-    <div id="currentPlayerName"></div>
-
-    <div class="card" onclick="handleCardClick()">
-      <div class="card-inner">
-        <div class="card-face card-back">
-          <img id="cardBackImage" src="images/card-back.png" alt="Обратная сторона" />
-        </div>
-        <div class="card-face card-front">
-          <img id="cardFrontImage" src="images/card-back.png" alt="Лицевая сторона" />
-        </div>
+  <div class="card" onclick="handleCardClick()">
+    <div class="card-inner">
+      <div class="card-face card-back">
+        <img id="cardBackImage" src="images/card-back.png" alt="Обратная сторона" />
+      </div>
+      <div class="card-face card-front">
+        <img id="cardFrontImage" src="images/card-back.png" alt="Лицевая сторона" />
       </div>
     </div>
+  </div>
 
-    <div class="history">
-      <h3>История</h3>
-      <ul id="historyList"></ul>
-    </div>
-  </main>
+  <div class="history">
+    <h3>История</h3>
+    <ul id="historyList"></ul>
+  </div>
 
   <script>
     let fullDeck = [];
@@ -246,24 +204,6 @@
       fullDeck = generateFullDeck();
       deck = [...fullDeck];
       shuffle(deck);
-      renderDeckVisual();
-    }
-
-    function renderDeckVisual() {
-      const container = document.getElementById("deckStack");
-      const count = document.getElementById("deckCount");
-      container.innerHTML = "";
-      let stackLength = Math.min(deck.length, 20); // ограничим отображение 20ю
-
-      for (let i = 0; i < stackLength; i++) {
-        const img = document.createElement("img");
-        img.src = "images/card-back.png";
-        img.style.top = `${i * 2}px`;
-        img.style.left = `${i * 1.5}px`;
-        container.appendChild(img);
-      }
-
-      count.textContent = `Карт: ${deck.length}`;
     }
 
     function drawCard() {
@@ -273,9 +213,8 @@
       if (deck.length === 0) initDeck();
 
       const card = deck.pop();
-      renderDeckVisual();
 
-      // Переворот анимация
+      // Анимация переворота
       const cardEl = document.querySelector(".card");
       cardEl.classList.remove("flipped");
       void cardEl.offsetWidth;
