@@ -124,7 +124,7 @@
       padding: 0;
     }
 
-    #startGameBtn {
+    #startGameBtn, #reshuffleBtn {
       margin-top: 10px;
       display: none;
     }
@@ -138,6 +138,14 @@
       color: black;
       margin: 10px 0;
       display: block;
+    }
+
+    #deckEmptyMessage {
+      color: red;
+      font-size: 20px;
+      font-weight: bold;
+      display: none;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -154,7 +162,6 @@
   <div id="nextPlayerLabel">Следующий ходит:</div>
   <div class="player-list" id="playerList"></div>
 
-  <!-- Стартовая подсказка и кнопка -->
   <div id="startHint">Для старта нажми на карту</div>
   <button id="startGameBtn" onclick="startNewGame()">Новая игра</button>
 
@@ -170,6 +177,9 @@
       </div>
     </div>
   </div>
+
+  <div id="deckEmptyMessage">Перемешай колоду!</div>
+  <button id="reshuffleBtn" onclick="reshuffleDeck()">Перемешать колоду</button>
 
   <div class="history">
     <h3>История</h3>
@@ -204,17 +214,22 @@
       fullDeck = generateFullDeck();
       deck = [...fullDeck];
       shuffle(deck);
+      document.getElementById("deckEmptyMessage").style.display = "none";
+      document.getElementById("reshuffleBtn").style.display = "none";
     }
 
     function drawCard() {
+      if (deck.length === 0) {
+        document.getElementById("deckEmptyMessage").style.display = "block";
+        document.getElementById("reshuffleBtn").style.display = "inline-block";
+        return;
+      }
+
       const player = players[currentPlayer];
       updateCurrentPlayerName();
 
-      if (deck.length === 0) initDeck();
-
       const card = deck.pop();
 
-      // Анимация переворота
       const cardEl = document.querySelector(".card");
       cardEl.classList.remove("flipped");
       void cardEl.offsetWidth;
@@ -235,6 +250,10 @@
 
       updatePlayers();
       updateHistory();
+    }
+
+    function reshuffleDeck() {
+      initDeck();
     }
 
     function handleCardClick() {
@@ -324,6 +343,9 @@
 
       document.getElementById("cardFrontImage").src = "images/card-back.png";
       document.querySelector(".card").classList.remove("flipped");
+
+      document.getElementById("deckEmptyMessage").style.display = "none";
+      document.getElementById("reshuffleBtn").style.display = "none";
 
       updatePlayers();
     }
