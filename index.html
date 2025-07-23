@@ -41,6 +41,33 @@
       margin: 4px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      transition: background 0.3s, border 0.3s;
+    }
+    .card img {
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    .card.flipped img {
+      transform: rotateY(180deg);
+    }
+    .player.active {
+      background: #d1eaff;
+      border: 2px solid #007bff;
+      font-weight: bold;
+      padding: 3px 6px;
+      border-radius: 6px;
+    }
+    #currentPlayerName {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 30px;
+    }
+    #nextPlayerLabel {
+      font-size: 20px;
+      color: #555;
+      margin-top: 20px;
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -52,10 +79,18 @@
     <h3>Игроки</h3>
     <input id="playerName" placeholder="Имя игрока">
     <button onclick="addPlayer()">Добавить</button>
+
+    <!-- Надпись перед списком игроков -->
+    <div id="nextPlayerLabel">Следующий ходит:</div>
+
     <div class="player-list" id="playerList"></div>
   </div>
 
   <button onclick="drawCard()">Вытянуть карту</button>
+  <button onclick="startNewGame()">Новая игра</button>
+
+  <!-- Крупное имя текущего игрока -->
+  <div id="currentPlayerName"></div>
 
   <div class="card"><img id="cardImage" src="images/card-back.png" alt="Карта" width="150"></div>
 
@@ -69,7 +104,7 @@
     let deck = [];
     let history = [];
     let players = [];
-let currentPlayer = 0;
+    let currentPlayer = 0;
 
     function generateFullDeck() {
       let cards = [];
@@ -94,20 +129,39 @@ let currentPlayer = 0;
     }
 
     function drawCard() {
-      if (deck.length === 0) {
-        initDeck(); // автоматически сбрасываем колоду
+      if (players.length === 0) {
+        alert("Сначала добавьте хотя бы одного игрока!");
+        return;
       }
+
+      const player = players[currentPlayer];
+      updateCurrentPlayerName();
+
+      if (deck.length === 0) {
+        initDeck();
+      }
+
       const card = deck.pop();
       const cardImage = document.getElementById("cardImage");
-      let imageName = "";
-      if (card === "1") imageName = "card-1.png";
-      else if (card === "2") imageName = "card-2.png";
-      else if (card === "3") imageName = "card-3.png";
-      else imageName = "card-turn.png";
-      cardImage.src = "images/" + imageName;
-      const player = players.length > 0 ? players[currentPlayer] : 'Игрок';
+      const cardContainer = cardImage.parentElement;
+      cardContainer.classList.remove("flipped");
+      void cardImage.offsetWidth;
+      cardContainer.classList.add("flipped");
+
+      setTimeout(() => {
+        let imageName = "";
+        if (card === "1") imageName = "card-1.png";
+        else if (card === "2") imageName = "card-2.png";
+        else if (card === "3") imageName = "card-3.png";
+        else imageName = "card-turn.png";
+        cardImage.src = "images/" + imageName;
+      }, 300);
+
       history.unshift({ name: player, card: card });
+
       currentPlayer = (currentPlayer + 1) % players.length;
+
+      updatePlayers();
       updateHistory();
     }
 
@@ -117,7 +171,7 @@ let currentPlayer = 0;
       history.slice(0, 10).forEach(entry => {
         const li = document.createElement("li");
         const cardFile = (entry.card === 'поворот') ? 'card-turn.png' : `card-${entry.card}.png`;
-      li.innerHTML = `${entry.name}: <img src="images/${cardFile}" width="50">`;
+        li.innerHTML = `${entry.name}: <img src="images/${cardFile}" width="50">`;
         list.appendChild(li);
       });
     }
@@ -128,18 +182,43 @@ let currentPlayer = 0;
       if (name && !players.includes(name)) {
         players.push(name);
         updatePlayers();
+        updateCurrentPlayerName();
         input.value = '';
       }
     }
 
     function updatePlayers() {
-      const div = document.getElementById("playerList");
-      div.innerHTML = "";
-      players.forEach(name => {
+      const playersDiv = document.getElementById("playerList");
+      playersDiv.innerHTML = "";
+      players.forEach((name, i) => {
         const span = document.createElement("span");
         span.textContent = name;
-        div.appendChild(span);
+        span.className = "player";
+        if (i === currentPlayer) {
+          span.classList.add("active");
+        }
+        playersDiv.appendChild(span);
       });
+    }
+
+    function updateCurrentPlayerName() {
+      const nameDiv = document.getElementById("currentPlayerName");
+      if (players.length > 0) {
+        nameDiv.textContent = players[currentPlayer];
+      } else {
+        nameDiv.textContent = '';
+      }
+    }
+
+    function startNewGame() {
+      currentPlayer = 0;
+      history = [];
+      updateHistory();
+      initDeck();
+      const cardImage = document.getElementById("cardImage");
+      cardImage.src = "images/card-back.png";
+      updatePlayers();
+      updateCurrentPlayerName();
     }
 
     // Инициализация
