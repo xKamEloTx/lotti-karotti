@@ -69,6 +69,7 @@
     let deck = [];
     let history = [];
     let players = [];
+let currentPlayer = 0;
 
     function generateFullDeck() {
       let cards = [];
@@ -98,16 +99,18 @@
       }
       const card = deck.pop();
       document.getElementById("cardDisplay").textContent = card === 'поворот' ? '🔄 поворот' : card;
-      history.unshift(card);
+      const player = players.length > 0 ? players[currentPlayer] : 'Игрок';
+      history.unshift({ name: player, card: card });
+      currentPlayer = (currentPlayer + 1) % players.length;
       updateHistory();
     }
 
     function updateHistory() {
       const list = document.getElementById("historyList");
       list.innerHTML = "";
-      history.slice(0, 10).forEach((c, i) => {
+      history.slice(0, 10).forEach(entry => {
         const li = document.createElement("li");
-        li.textContent = `${i + 1}. ${c === 'поворот' ? '🔄 поворот' : c}`;
+        li.textContent = `${entry.name}: ${entry.card === 'поворот' ? '🔄 поворот' : entry.card}`;
         list.appendChild(li);
       });
     }
